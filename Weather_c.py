@@ -7,7 +7,7 @@ import requests
 from geopy.geocoders import Nominatim
 from datetime import datetime,timedelta
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import math
 
 class WeatherApp(QMainWindow):
     def __init__(self):
@@ -53,56 +53,56 @@ class WeatherApp(QMainWindow):
             with connection.cursor() as cursor:
                 cursor.execute("SELECT CHISLO, TEMPERATYRA, DAVLENIE, YAVL, VETER, VLAHNOST FROM weather ORDER BY ID;")
                 records = cursor.fetchall()
+                for a in range(math.ceil(len(records) / 2) + 2):
+                    self.tableWidget.insertRow(a)
+                    if a >= 0:
+                        record_1 = records[a * 2-4]
+                        record_2 = records[a * 2 - 3]
+                        for col_index, value in enumerate(record_1[:6]):
+                            item_1 = QTableWidgetItem(str(value))
+                            self.tableWidget.setItem(a, col_index, item_1)
+                        for col_index, value in enumerate(record_2[1:6], start=6):
+                            item_2 = QTableWidgetItem(str(value))
+                            self.tableWidget.setItem(a, col_index, item_2)
 
-                for row_index, record in enumerate(records):
-                    self.tableWidget.insertRow(row_index)
-                    if row_index % 2 == 0:
-                        for col_index, value in enumerate(record[:6]):
-                            item = QTableWidgetItem(str(value))
-                            self.tableWidget.setItem(row_index, col_index, item)
-                    else:
-                        row_index = row_index - 1 
-                        for col_index, value in enumerate(record[1:6], start=6):
-                            item = QTableWidgetItem(str(value))
-                            self.tableWidget.setItem(row_index, col_index, item)
+            # Скрыть сетку и индексы строк
+            # self.tableWidget.setShowGrid(False)
+            self.tableWidget.verticalHeader().setVisible(False)
+            self.tableWidget.horizontalHeader().setVisible(False)
 
-                # Скрыть сетку и индексы строк
-                # self.tableWidget.setShowGrid(False)
-                self.tableWidget.verticalHeader().setVisible(False)
-                self.tableWidget.horizontalHeader().setVisible(False)
+            # Добавление заголовков и объединение ячеек
+            self.tableWidget.setSpan(0, 1, 1, 5)
+            self.tableWidget.setSpan(0, 6, 1, 5)
+            self.tableWidget.setSpan(0, 0, 2, 1)
+            new_item = QTableWidgetItem("Число")
+            self.tableWidget.setItem(0, 0, new_item)
+            new_item = QTableWidgetItem("День")
+            self.tableWidget.setItem(0, 1, new_item)
+            new_item = QTableWidgetItem("Вечер")
+            self.tableWidget.setItem(0, 6, new_item)
+            new_item = QTableWidgetItem("Температура")
+            self.tableWidget.setItem(1, 1, new_item)
+            new_item = QTableWidgetItem("Давление")
+            self.tableWidget.setItem(1, 2, new_item)
+            new_item = QTableWidgetItem("Облачность")
+            self.tableWidget.setItem(1, 3, new_item)
+            new_item = QTableWidgetItem("Ветер")
+            self.tableWidget.setItem(1, 4, new_item)
+            new_item = QTableWidgetItem("Влажность")
+            self.tableWidget.setItem(1, 5, new_item)
+            new_item = QTableWidgetItem("Температура")
+            self.tableWidget.setItem(1, 6, new_item)
+            new_item = QTableWidgetItem("Давление")
+            self.tableWidget.setItem(1, 7, new_item)
+            new_item = QTableWidgetItem("Облачность")
+            self.tableWidget.setItem(1, 8, new_item)
+            new_item = QTableWidgetItem("Ветер")
+            self.tableWidget.setItem(1, 9, new_item)
+            new_item = QTableWidgetItem("Влажность")
+            self.tableWidget.setItem(1, 10, new_item)
 
-                self.tableWidget.setSpan(0,1,1,5)
-                self.tableWidget.setSpan(0,6,1,5)
-                self.tableWidget.setSpan(0,0,2,1)
-                new_item = QTableWidgetItem("Число")
-                self.tableWidget.setItem(0, 0, new_item)
-                new_item = QTableWidgetItem("День")
-                self.tableWidget.setItem(0, 1, new_item)
-                new_item = QTableWidgetItem("Вечер")
-                self.tableWidget.setItem(0, 6, new_item)
-                new_item = QTableWidgetItem("Температура")
-                self.tableWidget.setItem(1, 1, new_item)
-                new_item = QTableWidgetItem("Давление")
-                self.tableWidget.setItem(1, 2, new_item)
-                new_item = QTableWidgetItem("Облачность")
-                self.tableWidget.setItem(1, 3, new_item)
-                new_item = QTableWidgetItem("Ветер")
-                self.tableWidget.setItem(1, 4, new_item)
-                new_item = QTableWidgetItem("Влажность")
-                self.tableWidget.setItem(1, 5, new_item)
-                new_item = QTableWidgetItem("Температура")
-                self.tableWidget.setItem(1, 6, new_item)
-                new_item = QTableWidgetItem("Давление")
-                self.tableWidget.setItem(1, 7, new_item)
-                new_item = QTableWidgetItem("Облачность")
-                self.tableWidget.setItem(1, 8, new_item)
-                new_item = QTableWidgetItem("Ветер")
-                self.tableWidget.setItem(1, 9, new_item)
-                new_item = QTableWidgetItem("Влажность")
-                self.tableWidget.setItem(1, 10, new_item)
-
-                # Выравнивание столбцов по содержимому
-                self.tableWidget.resizeColumnsToContents()
+            # Выравнивание столбцов по содержимому
+            self.tableWidget.resizeColumnsToContents()
 
         except (Exception, Error) as error:
             print("Ошибка при работе с PostgreSQL", error)
