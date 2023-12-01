@@ -13,7 +13,7 @@ class WeatherApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Weather Data Table')
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 900, 600)
 
         # Добавляем QLabel для отображения надписи
         self.city_label = QLabel('Город: Киров', self)
@@ -41,13 +41,8 @@ class WeatherApp(QMainWindow):
         self.table_button.clicked.connect(self.show_cloudiness_table)
 
         self.tableWidget = QTableWidget(self)
-        self.tableWidget.setGeometry(50, 50, 700, 400)
-        self.tableWidget.setColumnCount(6)
-        self.tableWidget.setHorizontalHeaderLabels(['Дата', 'Температура', 'Давление', 'Облачность', 'Скорость ветра', 'Влажность'])
-
-        # Скрыть сетку и индексы строк
-        self.tableWidget.setShowGrid(False)
-        self.tableWidget.verticalHeader().setVisible(False)
+        self.tableWidget.setGeometry(50, 50, 800, 400)
+        self.tableWidget.setColumnCount(11)
 
         try:
             connection = psycopg2.connect(user="postgres",
@@ -61,9 +56,50 @@ class WeatherApp(QMainWindow):
 
                 for row_index, record in enumerate(records):
                     self.tableWidget.insertRow(row_index)
-                    for col_index, value in enumerate(record):
-                        item = QTableWidgetItem(str(value))
-                        self.tableWidget.setItem(row_index, col_index, item)
+                    if row_index % 2 == 0:
+                        for col_index, value in enumerate(record[:6]):
+                            item = QTableWidgetItem(str(value))
+                            self.tableWidget.setItem(row_index, col_index, item)
+                    else:
+                        row_index = row_index - 1 
+                        for col_index, value in enumerate(record[1:6], start=6):
+                            item = QTableWidgetItem(str(value))
+                            self.tableWidget.setItem(row_index, col_index, item)
+
+                # Скрыть сетку и индексы строк
+                # self.tableWidget.setShowGrid(False)
+                self.tableWidget.verticalHeader().setVisible(False)
+                self.tableWidget.horizontalHeader().setVisible(False)
+
+                self.tableWidget.setSpan(0,1,1,5)
+                self.tableWidget.setSpan(0,6,1,5)
+                self.tableWidget.setSpan(0,0,2,1)
+                new_item = QTableWidgetItem("Число")
+                self.tableWidget.setItem(0, 0, new_item)
+                new_item = QTableWidgetItem("День")
+                self.tableWidget.setItem(0, 1, new_item)
+                new_item = QTableWidgetItem("Вечер")
+                self.tableWidget.setItem(0, 6, new_item)
+                new_item = QTableWidgetItem("Температура")
+                self.tableWidget.setItem(1, 1, new_item)
+                new_item = QTableWidgetItem("Давление")
+                self.tableWidget.setItem(1, 2, new_item)
+                new_item = QTableWidgetItem("Облачность")
+                self.tableWidget.setItem(1, 3, new_item)
+                new_item = QTableWidgetItem("Ветер")
+                self.tableWidget.setItem(1, 4, new_item)
+                new_item = QTableWidgetItem("Влажность")
+                self.tableWidget.setItem(1, 5, new_item)
+                new_item = QTableWidgetItem("Температура")
+                self.tableWidget.setItem(1, 6, new_item)
+                new_item = QTableWidgetItem("Давление")
+                self.tableWidget.setItem(1, 7, new_item)
+                new_item = QTableWidgetItem("Облачность")
+                self.tableWidget.setItem(1, 8, new_item)
+                new_item = QTableWidgetItem("Ветер")
+                self.tableWidget.setItem(1, 9, new_item)
+                new_item = QTableWidgetItem("Влажность")
+                self.tableWidget.setItem(1, 10, new_item)
 
                 # Выравнивание столбцов по содержимому
                 self.tableWidget.resizeColumnsToContents()
@@ -352,11 +388,11 @@ if __name__ == '__main__':
 
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
-    finally:
-        if connection:
-            cursor.close()
-            connection.close()
-            print("Соединение с PostgreSQL закрыто")
+    # finally:
+    #     if connection:
+    #         cursor.close()
+    #         connection.close()
+    #         print("Соединение с PostgreSQL закрыто")
 
     app = QApplication(sys.argv)
     weather_app = WeatherApp()
