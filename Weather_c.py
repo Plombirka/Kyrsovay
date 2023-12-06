@@ -1,6 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QLabel, QPushButton, QVBoxLayout, QWidget
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QLabel, QPushButton, QVBoxLayout, QWidget, QMessageBox
 import psycopg2
 from psycopg2 import Error
 import requests
@@ -46,21 +45,25 @@ class WeatherApp(QMainWindow):
 
         try:
             connection = psycopg2.connect(user="postgres",
-                                          password="qwerty",
-                                          host="127.0.0.1",
-                                          port="5435",
-                                          database="postgres")
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT CHISLO, TEMPERATYRA, DAVLENIE, YAVL, VETER, VLAHNOST FROM weather ORDER BY ID;")
-                records = cursor.fetchall()
-                for a in range(math.ceil(len(records) / 2) + 2):
-                    self.tableWidget.insertRow(a)
-                    if a >= 0:
-                        record_1 = records[a * 2-4]
-                        record_2 = records[a * 2 - 3]
+                                            password="qwerty",
+                                            host="127.0.0.1",
+                                            port="5435",
+                                            database="postgres")
+            cursor = connection.cursor()
+            cursor.execute("SELECT CHISLO, TEMPERATYRA, DAVLENIE, YAVL, VETER, VLAHNOST FROM weather ORDER BY ID;")
+            records = cursor.fetchall()
+            print(len(records))
+            for a in range(math.ceil(len(records) / 2) + 2):
+                self.tableWidget.insertRow(a)
+                if a > 1:
+                    if a * 2 - 4 < len(records):
+                        record_1 = records[a * 2 - 4]
                         for col_index, value in enumerate(record_1[:6]):
                             item_1 = QTableWidgetItem(str(value))
                             self.tableWidget.setItem(a, col_index, item_1)
+
+                    if a * 2 - 3 < len(records):
+                        record_2 = records[a * 2 - 3]
                         for col_index, value in enumerate(record_2[1:6], start=6):
                             item_2 = QTableWidgetItem(str(value))
                             self.tableWidget.setItem(a, col_index, item_2)
@@ -108,116 +111,272 @@ class WeatherApp(QMainWindow):
             print("Ошибка при работе с PostgreSQL", error)
         finally:
             if connection:
+                cursor.close()
                 connection.close()
                 print("Соединение с PostgreSQL закрыто")
 
     def Kolab_Temp(self):
-        try:
-            connection = psycopg2.connect(user="postgres",
-                                          password="qwerty",
-                                          host="127.0.0.1",
-                                          port="5435",
-                                          database="postgres")
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT chislo, temperatyra FROM weather")
-                records = cursor.fetchall()
+        box = QMessageBox()
+        box.setIcon(QMessageBox.Question)
+        box.setWindowTitle('Колебания')
+        box.setText('Коллебания температуры')
+        box.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
+        buttonY = box.button(QMessageBox.Yes)
+        buttonY.setText('День')
+        buttonN = box.button(QMessageBox.No)
+        buttonN.setText('Вечер')
+        box.exec_()
 
-                dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
-                temperatures = [float(record[1]) for record in records]
+        if box.clickedButton() == buttonY:
+            try:
+                connection = psycopg2.connect(user="postgres",
+                                            password="qwerty",
+                                            host="127.0.0.1",
+                                            port="5435",
+                                            database="postgres")
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT chislo, temperatyra FROM weather")
+                    records = cursor.fetchall()
 
-                plt.plot(dates, temperatures)
-                plt.xlabel('Дата')
-                plt.ylabel('Температура')
-                plt.title('Колебание температуры')
-                plt.show()
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 == 0]
 
-        except (Exception, Error) as error:
-            print("Ошибка при работе с PostgreSQL", error)
-        finally:
-            if connection:
-                connection.close()
-                print("Соединение с PostgreSQL закрыто")
+                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.xlabel('Дата')
+                    plt.ylabel('Температура')
+                    plt.title('Колебание температуры')
+                    plt.show()
+
+            except (Exception, Error) as error:
+                print("Ошибка при работе с PostgreSQL", error)
+            finally:
+                if connection:
+                    connection.close()
+                    print("Соединение с PostgreSQL закрыто")
+
+        if box.clickedButton() == buttonN:
+            try:
+                connection = psycopg2.connect(user="postgres",
+                                            password="qwerty",
+                                            host="127.0.0.1",
+                                            port="5435",
+                                            database="postgres")
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT chislo, temperatyra FROM weather")
+                    records = cursor.fetchall()
+
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 != 0]
+
+                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.xlabel('Дата')
+                    plt.ylabel('Температура')
+                    plt.title('Колебание температуры')
+                    plt.show()
+            except (Exception, Error) as error:
+                print("Ошибка при работе с PostgreSQL", error)
+            finally:
+                if connection:
+                    connection.close()
+                    print("Соединение с PostgreSQL закрыто")
 
     def Kolab_Davl(self):
-        try:
-            connection = psycopg2.connect(user="postgres",
-                                            password="qwerty",
-                                            host="127.0.0.1",
-                                            port="5435",
-                                            database="postgres")
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT chislo, davlenie FROM weather")
-                records = cursor.fetchall()
+        box = QMessageBox()
+        box.setIcon(QMessageBox.Question)
+        box.setWindowTitle('Колебания')
+        box.setText('Коллебания давления')
+        box.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
+        buttonY = box.button(QMessageBox.Yes)
+        buttonY.setText('День')
+        buttonN = box.button(QMessageBox.No)
+        buttonN.setText('Вечер')
+        box.exec_()
 
-                dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
-                temperatures = [float(record[1]) for record in records]
+        if box.clickedButton() == buttonY:
+            try:
+                connection = psycopg2.connect(user="postgres",
+                                                password="qwerty",
+                                                host="127.0.0.1",
+                                                port="5435",
+                                                database="postgres")
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT chislo, davlenie FROM weather")
+                    records = cursor.fetchall()
 
-                plt.plot(dates, temperatures)
-                plt.xlabel('Дата')
-                plt.ylabel('Давление')
-                plt.title('Коллебание давления')
-                plt.show()
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 == 0]
 
-        except (Exception, Error) as error:
-            print("Ошибка при работе с PostgreSQL", error)
-        finally:
-            if connection:
-                connection.close()
-                print("Соединение с PostgreSQL закрыто")
+                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.xlabel('Дата')
+                    plt.ylabel('Давление')
+                    plt.title('Коллебание давления')
+                    plt.show()
+
+            except (Exception, Error) as error:
+                print("Ошибка при работе с PostgreSQL", error)
+            finally:
+                if connection:
+                    connection.close()
+                    print("Соединение с PostgreSQL закрыто")
+        
+        if box.clickedButton() == buttonN:
+            try:
+                connection = psycopg2.connect(user="postgres",
+                                                password="qwerty",
+                                                host="127.0.0.1",
+                                                port="5435",
+                                                database="postgres")
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT chislo, davlenie FROM weather")
+                    records = cursor.fetchall()
+
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 != 0]
+
+                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.xlabel('Дата')
+                    plt.ylabel('Давление')
+                    plt.title('Коллебание давления')
+                    plt.show()
+
+            except (Exception, Error) as error:
+                print("Ошибка при работе с PostgreSQL", error)
+            finally:
+                if connection:
+                    connection.close()
+                    print("Соединение с PostgreSQL закрыто")
 
     def Kolab_vlahnost(self):
-        try:
-            connection = psycopg2.connect(user="postgres",
-                                            password="qwerty",
-                                            host="127.0.0.1",
-                                            port="5435",
-                                            database="postgres")
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT chislo, vlahnost FROM weather")
-                records = cursor.fetchall()
+        box = QMessageBox()
+        box.setIcon(QMessageBox.Question)
+        box.setWindowTitle('Колебания')
+        box.setText('Коллебания влажности')
+        box.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
+        buttonY = box.button(QMessageBox.Yes)
+        buttonY.setText('День')
+        buttonN = box.button(QMessageBox.No)
+        buttonN.setText('Вечер')
+        box.exec_()
 
-                dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
-                temperatures = [float(record[1]) for record in records]
+        if box.clickedButton() == buttonY:
+            try:
+                connection = psycopg2.connect(user="postgres",
+                                                password="qwerty",
+                                                host="127.0.0.1",
+                                                port="5435",
+                                                database="postgres")
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT chislo, vlahnost FROM weather")
+                    records = cursor.fetchall()
 
-                plt.plot(dates, temperatures)
-                plt.xlabel('Дата')
-                plt.ylabel('Влажность')
-                plt.title('Коллебание влажности')
-                plt.show()
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 == 0]
 
-        except (Exception, Error) as error:
-            print("Ошибка при работе с PostgreSQL", error)
-        finally:
-            if connection:
-                connection.close()
-                print("Соединение с PostgreSQL закрыто")
+                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.xlabel('Дата')
+                    plt.ylabel('Влажность')
+                    plt.title('Коллебание влажности')
+                    plt.show()
+
+            except (Exception, Error) as error:
+                print("Ошибка при работе с PostgreSQL", error)
+            finally:
+                if connection:
+                    connection.close()
+                    print("Соединение с PostgreSQL закрыто")
+
+        if box.clickedButton() == buttonN:
+            try:
+                connection = psycopg2.connect(user="postgres",
+                                                password="qwerty",
+                                                host="127.0.0.1",
+                                                port="5435",
+                                                database="postgres")
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT chislo, vlahnost FROM weather")
+                    records = cursor.fetchall()
+
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 != 0]
+
+                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.xlabel('Дата')
+                    plt.ylabel('Влажность')
+                    plt.title('Коллебание влажности')
+                    plt.show()
+
+            except (Exception, Error) as error:
+                print("Ошибка при работе с PostgreSQL", error)
+            finally:
+                if connection:
+                    connection.close()
+                    print("Соединение с PostgreSQL закрыто")
 
     def Kolab_veter(self):
-        try:
-            connection = psycopg2.connect(user="postgres",
-                                            password="qwerty",
-                                            host="127.0.0.1",
-                                            port="5435",
-                                            database="postgres")
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT chislo, veter FROM weather")
-                records = cursor.fetchall()
+        box = QMessageBox()
+        box.setIcon(QMessageBox.Question)
+        box.setWindowTitle('Колебания')
+        box.setText('Коллебания ветра')
+        box.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
+        buttonY = box.button(QMessageBox.Yes)
+        buttonY.setText('День')
+        buttonN = box.button(QMessageBox.No)
+        buttonN.setText('Вечер')
+        box.exec_()
 
-                dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
-                temperatures = [float(record[1]) for record in records]
+        if box.clickedButton() == buttonY:
+            try:
+                connection = psycopg2.connect(user="postgres",
+                                                password="qwerty",
+                                                host="127.0.0.1",
+                                                port="5435",
+                                                database="postgres")
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT chislo, veter FROM weather")
+                    records = cursor.fetchall()
 
-                plt.plot(dates, temperatures)
-                plt.xlabel('Дата')
-                plt.ylabel('Скорость ветра')
-                plt.title('Коллебание скорости ветра')
-                plt.show()
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 == 0]
 
-        except (Exception, Error) as error:
-            print("Ошибка при работе с PostgreSQL", error)
-        finally:
-            if connection:
-                connection.close()
-                print("Соединение с PostgreSQL закрыто")
+                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.xlabel('Дата')
+                    plt.ylabel('Скорость ветра')
+                    plt.title('Коллебание скорости ветра')
+                    plt.show()
+
+            except (Exception, Error) as error:
+                print("Ошибка при работе с PostgreSQL", error)
+            finally:
+                if connection:
+                    connection.close()
+                    print("Соединение с PostgreSQL закрыто")
+
+        if box.clickedButton() == buttonN:
+            try:
+                connection = psycopg2.connect(user="postgres",
+                                                password="qwerty",
+                                                host="127.0.0.1",
+                                                port="5435",
+                                                database="postgres")
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT chislo, veter FROM weather")
+                    records = cursor.fetchall()
+
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 != 0]
+
+                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.xlabel('Дата')
+                    plt.ylabel('Скорость ветра')
+                    plt.title('Коллебание скорости ветра')
+                    plt.show()
+
+            except (Exception, Error) as error:
+                print("Ошибка при работе с PostgreSQL", error)
+            finally:
+                if connection:
+                    connection.close()
+                    print("Соединение с PostgreSQL закрыто")
 
     def show_cloudiness_table(self):
         try:
@@ -388,14 +547,13 @@ if __name__ == '__main__':
 
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
-    # finally:
-    #     if connection:
-    #         cursor.close()
-    #         connection.close()
-    #         print("Соединение с PostgreSQL закрыто")
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+            print("Соединение с PostgreSQL закрыто")
 
     app = QApplication(sys.argv)
     weather_app = WeatherApp()
-    ui = WeatherApp()
     weather_app.show()
     sys.exit(app.exec())
