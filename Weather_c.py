@@ -68,8 +68,6 @@ class WeatherApp(QMainWindow):
                             item_2 = QTableWidgetItem(str(value))
                             self.tableWidget.setItem(a, col_index, item_2)
 
-            # Скрыть сетку и индексы строк
-            # self.tableWidget.setShowGrid(False)
             self.tableWidget.verticalHeader().setVisible(False)
             self.tableWidget.horizontalHeader().setVisible(False)
 
@@ -135,13 +133,13 @@ class WeatherApp(QMainWindow):
                                             port="5435",
                                             database="postgres")
                 with connection.cursor() as cursor:
-                    cursor.execute("SELECT chislo, temperatyra FROM weather")
+                    cursor.execute("SELECT chislo, temperatyra FROM weather ORDER BY ID")
                     records = cursor.fetchall()
 
-                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for i, record in enumerate(records) if i % 2 == 0]
                     temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 == 0]
 
-                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.plot(dates, temperatures)
                     plt.xlabel('Дата')
                     plt.ylabel('Температура')
                     plt.title('Колебание температуры')
@@ -162,13 +160,13 @@ class WeatherApp(QMainWindow):
                                             port="5435",
                                             database="postgres")
                 with connection.cursor() as cursor:
-                    cursor.execute("SELECT chislo, temperatyra FROM weather")
+                    cursor.execute("SELECT chislo, temperatyra FROM weather ORDER BY ID")
                     records = cursor.fetchall()
 
-                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for i, record in enumerate(records) if i % 2 != 0]
                     temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 != 0]
 
-                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.plot(dates, temperatures)
                     plt.xlabel('Дата')
                     plt.ylabel('Температура')
                     plt.title('Колебание температуры')
@@ -203,10 +201,10 @@ class WeatherApp(QMainWindow):
                     cursor.execute("SELECT chislo, davlenie FROM weather")
                     records = cursor.fetchall()
 
-                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for i, record in enumerate(records) if i % 2 == 0]
                     temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 == 0]
 
-                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.plot(dates, temperatures)
                     plt.xlabel('Дата')
                     plt.ylabel('Давление')
                     plt.title('Коллебание давления')
@@ -230,10 +228,10 @@ class WeatherApp(QMainWindow):
                     cursor.execute("SELECT chislo, davlenie FROM weather")
                     records = cursor.fetchall()
 
-                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for i, record in enumerate(records) if i % 2 == 0]
                     temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 != 0]
 
-                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.plot(dates, temperatures)
                     plt.xlabel('Дата')
                     plt.ylabel('Давление')
                     plt.title('Коллебание давления')
@@ -269,10 +267,10 @@ class WeatherApp(QMainWindow):
                     cursor.execute("SELECT chislo, vlahnost FROM weather")
                     records = cursor.fetchall()
 
-                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for i, record in enumerate(records) if i % 2 == 0]
                     temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 == 0]
 
-                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.plot(dates, temperatures)
                     plt.xlabel('Дата')
                     plt.ylabel('Влажность')
                     plt.title('Коллебание влажности')
@@ -296,10 +294,10 @@ class WeatherApp(QMainWindow):
                     cursor.execute("SELECT chislo, vlahnost FROM weather")
                     records = cursor.fetchall()
 
-                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for i, record in enumerate(records) if i % 2 == 0]
                     temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 != 0]
 
-                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.plot(dates, temperatures)
                     plt.xlabel('Дата')
                     plt.ylabel('Влажность')
                     plt.title('Коллебание влажности')
@@ -335,10 +333,10 @@ class WeatherApp(QMainWindow):
                     cursor.execute("SELECT chislo, veter FROM weather")
                     records = cursor.fetchall()
 
-                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for i, record in enumerate(records) if i % 2 == 0]
                     temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 == 0]
 
-                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.plot(dates, temperatures)
                     plt.xlabel('Дата')
                     plt.ylabel('Скорость ветра')
                     plt.title('Коллебание скорости ветра')
@@ -362,10 +360,10 @@ class WeatherApp(QMainWindow):
                     cursor.execute("SELECT chislo, veter FROM weather")
                     records = cursor.fetchall()
 
-                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for record in records]
+                    dates = [datetime.strptime(record[0], "%d-%m-%Y") for i, record in enumerate(records) if i % 2 == 0]
                     temperatures = [float(record[1]) for i, record in enumerate(records) if i % 2 != 0]
 
-                    plt.plot(dates[:len(temperatures)], temperatures)
+                    plt.plot(dates, temperatures)
                     plt.xlabel('Дата')
                     plt.ylabel('Скорость ветра')
                     plt.title('Коллебание скорости ветра')
